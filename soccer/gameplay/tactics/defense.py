@@ -287,14 +287,14 @@ class Defense(composite_behavior.CompositeBehavior):
         handlers = [goalie]
         for i in range(1,self.number_of_defenders+1):
             handlers.append(self.subbehavior_with_name('defender{}'.format(i)))
-
+        
         # For each threat
         for threat_idx in range(len(threats_to_block)):
             # Get the threat pos and score
             threat = threats_to_block[threat_idx]
             # Grab the list of handlers assigned to this threat
             assigned_handler = assigned_handlers[threat_idx]
-
+            print(assigned_handlers)
             # Exclude any robots we are about to assign to find the threats best shot
             self.kick_eval.excluded_robots.clear()
             for handler in handlers:
@@ -311,6 +311,7 @@ class Defense(composite_behavior.CompositeBehavior):
             # Put goalie in the middle if possible
             # This may not be working with more robots- Need to test
             if len(assigned_handler) > 1:
+                print('Found Goalie for {}'.format(assigned_handler))
                 if goalie in assigned_handler:
                     idx = assigned_handler.index(goalie)
 
@@ -362,8 +363,8 @@ class Defense(composite_behavior.CompositeBehavior):
                         pass_line, constants.Colors.Red, "Defense-Pass Line")
 
             # keep defenders from occupying the same spot
-            # only matters if there are 2 defenders (and the goalie)
-            if len(handlers) == 3:
+            # only matters if there are >= 2 defenders (and the goalie)
+            if len(handlers) >= 3:
                 handler1 = handlers[1]
                 handler2 = handlers[2]
 
