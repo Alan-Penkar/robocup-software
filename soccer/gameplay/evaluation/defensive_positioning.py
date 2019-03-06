@@ -242,3 +242,40 @@ def find_defense_positions(ignore_robots=[]):
     area_def_pos = create_area_defense_zones(ignore_robots)
 
     return area_def_pos, sorted_bot[0], sorted_bot[1]
+
+
+def goalside_mark_segment(mark_pos, robot, kick_eval=None):
+        # Finds the line segment between the ball and the highest danger shot point
+        # Cuts off the portion of the line that is inside of the goal box
+        # @return: LineSegment to defend on, shot_point
+        # This will also set 1 intermediate value to self:
+        # self.adjusted_mark_pos - the offset mark pos depending on if we defend a spot (assumed to be the ball) or a robot
+        #                        - this defines the closest point to the mark_pos our robot will go to defend
+
+        if kick_eval is None:
+            kick_eval = robocup.KickEvaluator(main.system_state())
+
+        #Define the segments where the defender can go closest the goal
+        offset = constants.Robot.Radius
+        goal_rect_padded = constants.Field.OurGoalZoneShapePadded(offset)
+        
+        #Find best shot point from threat
+        kick_eval.add_excluded_robot(robot) #FIX: Should we really exclude all of our robots but the goalie?
+        shot_pt, shot_score = kick_eval.eval_pt_to_our_goal(mark_pos)
+        kick_eval.excluded_robots.clear()
+
+        #End the mark line segment 1 radius away from the opposing robot
+        #Or 1 ball radius away if marking a position
+        if mark_point is None:
+            adjusted_mark_pos = mark_pos - (mark_pos - shot_pt).normalized() * 2 * constants.Robot.Radius
+        else:
+            adjusted_mark_pos = mark_pos - (mark_pos - shot_pt).normalized() * constants.Ball.Radius
+
+
+        shot_seg = robocup.Segment(self.adjusted_mark_pos , shot_pt)
+        tmp = goal_rect_padded.segment_intersection(shot_seg)
+        if tmp is None:
+            return None, shot_pt
+
+        intersections = sorted(tmp, key=lambda pt: pt.y, reverse=True)
+        return robocup.Segment(adjusted_mark_pos, intersections[0])
