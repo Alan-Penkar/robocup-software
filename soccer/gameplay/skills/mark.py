@@ -4,7 +4,7 @@ import robocup
 import main
 import constants
 import role_assignment
-
+import evaluation.defensive_positioning
 
 class Mark(single_robot_behavior.SingleRobotBehavior):
     '''
@@ -40,18 +40,18 @@ class Mark(single_robot_behavior.SingleRobotBehavior):
 
         #Sets the position to mark as the given mark position 
         #or robot position if no mark position is given 
-        ball_pos = main.ball().pos
         pos = self.robot.pos
         mark_pos = self.mark_point if self.mark_point is not None else self.mark_robot.pos
 
         #Finds the line from the ball to the mark position and creates a line between them
         #removing the overlap with the ball on one side and robot on the other
         #This assumes even with mark position parameter that there is a robot there to avoid
-        mark_line_dir = (ball_pos - mark_pos).normalized()
-        ball_mark_line = robocup.Segment(
-            ball_pos - mark_line_dir * constants.Ball.Radius,
-            mark_pos + mark_line_dir * 2.0 * constants.Robot.Radius)
-
+        #mark_line_dir = (ball_pos - mark_pos).normalized()
+        #ball_mark_line = robocup.Segment(
+        #    ball_pos - mark_line_dir * constants.Ball.Radius,
+        #    mark_pos + mark_line_dir * 2.0 * constants.Robot.Radius)
+        ball_pos = main.ball().pos
+        ball_mark_line = evaluation.defensive_positioning.ballside_mark_segment(mark_pos, ball_pos)
         #Drawing for simulator
         main.system_state().draw_line(ball_mark_line, (0, 0, 255), "Mark")
 
