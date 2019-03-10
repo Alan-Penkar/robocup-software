@@ -42,7 +42,7 @@ class Goalside_Mark(single_robot_behavior.SingleRobotBehavior):
             not main.ball().valid or
             not self.mark_robot.visible)):
             return
-        
+
         #Finds the line from the mark position to the shot point and creates a line between them
         #removing the overlap with the ball on one side and robot on the other
         #This assumes even with mark position parameter that there is a robot there to avoid
@@ -55,7 +55,7 @@ class Goalside_Mark(single_robot_behavior.SingleRobotBehavior):
 
         #Distance from robot to mark line
         mark_line_dist = mark_line.dist_to(self.robot.pos)
-
+        self._set_adjusted_mark_pos(shot_pt)
         #Sets target point to nearest point on mark line if the robot is over ball_mark_threshold
         #from the mark line
         # or
@@ -109,7 +109,7 @@ class Goalside_Mark(single_robot_behavior.SingleRobotBehavior):
     # or robot position if no mark position is given
     def _reset_mark_pos(self):
         self.mark_pos = self.mark_point if self.mark_point is not None else self._mark_robot.pos
-
+        #self._set_adjusted_mark_pos()
     #Robot to mark (what it sounds like)
     @property
     def mark_robot(self) -> robocup.Robot:
@@ -126,6 +126,12 @@ class Goalside_Mark(single_robot_behavior.SingleRobotBehavior):
             req.destination_shape = self._target_point
         return req
 
+    def _set_adjusted_mark_pos(self, shot_pt):
+        if self.mark_point is None:
+            self.adjusted_mark_pos = self.mark_pos - (self.mark_pos - shot_pt).normalized() * 2 * constants.Robot.Radius
+        else:
+            self.adjusted_mark_pos = self.mark_pos - (self.mark_pos - shot_pt).normalized() * constants.Ball.Radius
+
     def get_mark_segment(self):
         # Finds the line segment between the ball and the highest danger shot point
         # Cuts off the portion of the line that is inside of the goal box
@@ -135,22 +141,14 @@ class Goalside_Mark(single_robot_behavior.SingleRobotBehavior):
         #                        - this defines the closest point to the mark_pos our robot will go to defend
 
         #Define the segments where the defender can go closest the goal
+        self.set_adjusted_mark_pos()
 
-        offset = constants.Robot.Radius
-        goal_rect_padded = constants.Field.OurGoalZoneShapePadded(offset)
-        
         #Find best shot point from threat
         self.kick_eval.add_excluded_robot(self.robot) #FIX: Should we really exclude all of our robots but the goalie?
         shot_pt, shot_score = self.kick_eval.eval_pt_to_our_goal(self.mark_pos)
         self.kick_eval.excluded_robots.clear()
 
-        #End the mark line segment 1 radius away from the opposing robot
-        #Or 1 ball radius away if marking a position
-        if self.mark_point is None:
-            self.adjusted_mark_pos = self.mark_pos - (self.mark_pos - shot_pt).normalized() * 2 * constants.Robot.Radius
-        else:
-            self.adjusted_mark_pos = self.mark_pos - (self.mark_pos - shot_pt).normalized() * constants.Ball.Radius
-
+        
 
         shot_seg = robocup.Segment(self.adjusted_mark_pos , shot_pt)
         tmp = goal_rect_padded.segment_intersection(shot_seg)

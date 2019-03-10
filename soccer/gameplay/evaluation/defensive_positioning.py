@@ -245,13 +245,16 @@ def find_defense_positions(ignore_robots=[]):
 
 
 def goalside_mark_segment(mark_pos, robot, ball=False, kick_eval=None):
-        # Finds the line segment between the mark_pos and the highest danger shot point
-        # Cuts off the portion of the line that is inside of the goal box
-        # @param mark_pos: Point (usually robot position) to defend against
-        # @param robot: The robot assigned to defend
-        # @param kick_eval: kick evaluator, not required, but fewer steps if it's included here vs. recreated
-        # @return Tuple: LineSegment to defend on , shot_pt from kick_eval
-      
+        '''
+         Finds the line segment between the mark_pos and the highest danger shot point
+         Cuts off the portion of the line that is inside of the goal box
+         @param mark_pos: Point (usually robot position) to defend against
+         @param robot: The robot assigned to defend
+         @param ball: Is the marked position the ball? Defaults to robot - used for offsets
+         @param kick_eval: kick evaluator, not required, but fewer steps if it's included here vs. recreated
+         @return Tuple: LineSegment to defend on , shot_pt from kick_eval
+        '''
+
         if kick_eval is None:
             kick_eval = robocup.KickEvaluator(main.system_state())
 
@@ -274,8 +277,9 @@ def goalside_mark_segment(mark_pos, robot, ball=False, kick_eval=None):
 
         shot_seg = robocup.Segment(adjusted_mark_pos , shot_pt)
         tmp = goal_rect_padded.segment_intersection(shot_seg)
+        
         if tmp is None:
-            return None, shot_pt
+            return shot_seg, shot_pt
 
         intersections = sorted(tmp, key=lambda pt: pt.y, reverse=True)
         return robocup.Segment(adjusted_mark_pos, intersections[0]), shot_pt
