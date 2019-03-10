@@ -48,8 +48,7 @@ class Goalside_Mark(single_robot_behavior.SingleRobotBehavior):
         #This assumes even with mark position parameter that there is a robot there to avoid
         self._reset_mark_pos()
         
-        mark_line, shot_pt = evaluation.defensive_positioning.goalside_mark_segment(self.mark_pos, self.robot, kick_eval=self.kick_eval):
-        #mark_line, shot_pt = self.get_mark_segment()
+        mark_line, shot_pt = evaluation.defensive_positioning.goalside_mark_segment(self.mark_pos, self.robot, kick_eval=self.kick_eval)
 
         #Drawing for simulator 
         main.system_state().draw_line(mark_line, (0, 0, 255), "Mark")
